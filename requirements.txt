@@ -1,0 +1,21 @@
+# dependencias del laboratorio 3 (ASL)
+# instalar con: pip install -r requirements.txt
+
+# datos y computo
+numpy>=2.2
+pandas>=2.3
+pillow>=11.0
+scikit-learn>=1.8
+
+# graficas
+matplotlib>=3.10
+
+# descarga del dataset
+kagglehub>=1.0
+
+# deep learning
+tensorflow>=2.18
+
+# notebooks
+jupyter>=1.1
+nbconvert>=7.16

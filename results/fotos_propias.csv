@@ -1,0 +1,16 @@
+integrante,archivo,ruta,letra_real,letra_predicha,confianza,correcto
+diego,a.jpeg,../data/fotos_propias/diego/a.jpeg,A,L,0.99652207,False
+diego,b.jpeg,../data/fotos_propias/diego/b.jpeg,B,T,0.9999609,False
+diego,l.jpeg,../data/fotos_propias/diego/l.jpeg,L,C,1.0,False
+diego,v.jpeg,../data/fotos_propias/diego/v.jpeg,V,F,0.6866323,False
+diego,w.jpeg,../data/fotos_propias/diego/w.jpeg,W,K,0.99630994,False
+nelson,e.jpg,../data/fotos_propias/nelson/e.jpg,E,Q,0.99252,False
+nelson,i.jpg,../data/fotos_propias/nelson/i.jpg,I,C,1.0,False
+nelson,l.jpg,../data/fotos_propias/nelson/l.jpg,L,B,0.913378,False
+nelson,n.jpg,../data/fotos_propias/nelson/n.jpg,N,Q,0.99756277,False
+nelson,s.jpg,../data/fotos_propias/nelson/s.jpg,S,P,0.836688,False
+roberto,a.jpeg,../data/fotos_propias/roberto/a.jpeg,A,F,1.0,False
+roberto,n.jpeg,../data/fotos_propias/roberto/n.jpeg,N,N,0.82902724,True
+roberto,u.jpeg,../data/fotos_propias/roberto/u.jpeg,U,B,0.9999919,False
+roberto,x.jpeg,../data/fotos_propias/roberto/x.jpeg,X,F,1.0,False
+roberto,y.jpeg,../data/fotos_propias/roberto/y.jpeg,Y,F,1.0,False

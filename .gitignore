@@ -1,0 +1,9 @@
+.venv
+__pycache__/
+*.pyc
+asl_alphabet_train/
+asl_alphabet_train.zip
+data/asl_alphabet_train/*
+data/asl_alphabet_test/*
+data/processed/*
+docs/temp/*
