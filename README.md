@@ -1,26 +1,102 @@
-# Laboratorio 3 - Deep Learning
+# Proyecto 3 - Mejorando algoritmos con CUDA
 
-## Autores
-Nelson Escalante
-Roberto Najera
-Diego Lopez
+Computación Paralela y Distribuida, UVG
 
-## Datos
+## Integrantes
 
-Los datos (dataset crudo y arrays procesados) no se versionan en git por peso: el dataset de Kaggle
-pesa ~1GB y los `.npy` procesados otro tanto. Cada integrante los genera localmente con dos
-comandos, desde la raíz del repo:
+- Nelson Escalante
+- Isabella Obando
+- Anthony Lou
+
+## Descripción
+
+Este proyecto toma una solución que ya existía, el **Laboratorio 3 de Data Science: Deep Learning para
+reconocer el alfabeto del Lenguaje de Señas Americano (ASL)**, y la acelera usando la GPU con **CUDA**.
+La idea es medir de forma práctica cuánto mejora el rendimiento al pasar la carga computacional pesada
+a la GPU.
+
+Reconocer señas ASL es una aplicación de tecnología inclusiva: el objetivo es facilitar la comunicación
+a partir de imágenes de señas hechas frente a una cámara. Para eso hay que procesar muchas imágenes y
+hacer una gran cantidad de operaciones matemáticas para clasificarlas. Ese trabajo se puede hacer de
+forma secuencial en la CPU o en paralelo en la GPU.
+
+El pipeline se divide en dos fases con responsabilidades bien separadas:
+
+| Fase | Hardware | Qué hace |
+|------|----------|----------|
+| Preparación de datos | CPU (varios núcleos) | Lectura de archivos, decodificación, redimensionamiento y normalización de imágenes, split train/val/test |
+| Entrenamiento e inferencia del modelo | GPU (CUDA) | Operaciones de la red neuronal: convoluciones, multiplicaciones de matrices, activaciones, backpropagation |
+
+## Etapas del proyecto
+
+1. **Análisis de la solución secuencial.** Revisar el código del Lab 3, identificar sus partes principales
+   y descomponerlo en operaciones, desde que se reciben las imágenes hasta que se obtiene la predicción.
+   Identificar qué operaciones se repiten, qué datos procesan y cuántas veces se ejecutan.
+2. **Medición del tiempo secuencial.** Ejecutar la solución original varias veces en las mismas
+   condiciones, calcular el tiempo promedio y analizar qué factores influyen en el rendimiento.
+3. **Oportunidades de paralelización.** Elegir qué operaciones pueden ejecutarse al mismo tiempo en la
+   GPU y justificar esa elección.
+4. **Diseño del algoritmo paralelo.** Definir cómo se reparte el trabajo entre hilos, bloques y grids
+   de la GPU.
+5. **Implementación con CUDA Python.** Implementar el diseño y medir los tiempos con los mismos datos y
+   condiciones que la versión secuencial, incluyendo las transferencias CPU ↔ GPU.
+6. **Análisis y conclusiones.** Comparar ambas versiones con tablas y gráficas, calcular el speedup de
+   cada fase y explicar las diferencias de rendimiento.
+
+## Entregables
+
+- **Código** (`.py` / `.ipynb`) documentado, con la versión secuencial original y la versión optimizada.
+  Debe quedar clara la separación entre la preparación de datos (CPU) y la configuración de CUDA para el
+  entrenamiento del modelo (GPU).
+- **Informe de rendimiento (PDF)** con:
+  - Tabla comparativa de tiempos.
+  - Speedup de cada fase.
+  - Capturas del uso de recursos (Administrador de Tareas, `nvidia-smi` o similar) durante las
+    ejecuciones, que muestren la carga en los núcleos de la CPU y el uso de memoria y núcleos de la GPU.
+  - Discusión técnica:
+    - ¿Por qué es más eficiente procesar las imágenes con varios núcleos de la CPU y delegar a la GPU
+      solo la matemática de la red neuronal?
+    - ¿Cómo permitió CUDA reducir o cambiar el tiempo de procesamiento?
+    - ¿Qué factores justifican o limitan el uso de CUDA?
+
+## Estructura del repositorio
+
+```
+data/fotos_propias/   Fotos propias de señas, para probar el modelo con imágenes reales
+docs/report/          Documentación y reporte
+images/               Figuras generadas
+models/               Modelos entrenados (.keras)
+notebooks/            Notebooks del Lab 3 (EDA, CNN, modelo clásico, augmentation, comparación)
+results/              Métricas y resultados en CSV
+src/dataset.py        Descarga del dataset de Kaggle con kagglehub
+src/preprocessing.py  Preprocesamiento de imágenes y split train/val/test
+requirements.txt      Dependencias
+```
+
+## Datos y ejecución
+
+El dataset es el [ASL Alphabet](https://www.kaggle.com/datasets/grassknoted/asl-alphabet) de Kaggle,
+con 29 clases (A-Z, `del`, `nothing` y `space`). Los datos crudos (~1 GB) y los arrays procesados no se
+versionan en git por su tamaño. Se generan localmente desde la raíz del repo:
 
 ```bash
 pip install -r requirements.txt
 python src/preprocessing.py
 ```
 
-`src/dataset.py` se encarga de descargar el dataset de Kaggle (vía `kagglehub`) y dejarlo en
-`data/asl_alphabet_train/asl_alphabet_train/<clase>/*.jpg` con las 29 clases (A-Z, del, nothing,
-space). Es idempotente: si el dataset ya está completo no descarga nada, y si falta alguna clase
-solo copia esa. Después, `src/preprocessing.py` genera
-`data/processed/{X,y}_{train,val,test}.npy` y `classes.csv`.
+`src/dataset.py` descarga el dataset (solo si hace falta) en
+`data/asl_alphabet_train/asl_alphabet_train/<clase>/*.jpg`. Después, `src/preprocessing.py` genera
+`data/processed/{X,y}_{train,val,test}.npy` y `classes.csv`. Se usa `SEED=42` fijo, así que el split y la
+submuestra (700 imágenes por clase) salen iguales en cualquier máquina. Esto permite comparar los
+tiempos de la versión secuencial y la paralela con exactamente los mismos datos.
 
-El script usa `SEED=42` fijo, así que el split y la submuestra (700 img/clase) salen igual para
-todos sin necesidad de compartir los archivos generados.
+Para la fase en GPU se necesita una tarjeta NVIDIA con drivers y CUDA instalados. Se puede verificar con:
+
+```bash
+nvidia-smi
+```
+
+## Origen del código base
+
+El código de partida viene del repositorio del Laboratorio 3 de Data Science:
+[EscasanN/Lab3-DataScience](https://github.com/EscasanN/Lab3-DataScience).
