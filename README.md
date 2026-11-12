@@ -66,10 +66,19 @@ data/fotos_propias/   Fotos propias de señas, para probar el modelo con imágen
 docs/report/          Documentación y reporte
 images/               Figuras generadas
 models/               Modelos entrenados (.keras)
-notebooks/            Notebooks del Lab 3 (EDA, CNN, modelo clásico, augmentation, comparación)
-results/              Métricas y resultados en CSV
+notebooks/            Notebooks del Lab 3 (01-06) y del Proyecto 3 (07_proyecto3_cuda.ipynb)
+results/              Métricas y tiempos del benchmark (tiempos_*.csv, resumen_speedup.csv)
+results/logs/         Uso de cada núcleo de CPU y de la GPU durante cada medición
 src/dataset.py        Descarga del dataset de Kaggle con kagglehub
-src/preprocessing.py  Preprocesamiento de imágenes y split train/val/test
+src/preprocessing.py  Preprocesamiento ORIGINAL (secuencial) y split train/val/test
+src/preprocessing_parallel.py  Fase 1 en CPU multiproceso (mismo resultado, bit a bit)
+src/model.py          CNN 2 del Lab 3 en PyTorch
+src/train.py          Fase 2: entrenamiento e inferencia en CPU o GPU (CUDA)
+src/cuda_kernels.py   Kernels CUDA propios con Numba (conv, pooling, densa) y su versión en CPU
+src/monitor.py        Registro del uso de CPU/GPU (psutil + nvidia-smi)
+src/benchmark.py      Mide todas las fases varias veces y calcula el speedup
+src/plots.py          Gráficas del informe (images/p3_*.png)
+docs/report/informe_proyecto3.md  Informe (se exporta a PDF para la entrega)
 requirements.txt      Dependencias
 ```
 
@@ -90,11 +99,62 @@ python src/preprocessing.py
 submuestra (700 imágenes por clase) salen iguales en cualquier máquina. Esto permite comparar los
 tiempos de la versión secuencial y la paralela con exactamente los mismos datos.
 
-Para la fase en GPU se necesita una tarjeta NVIDIA con drivers y CUDA instalados. Se puede verificar con:
+Para la fase en GPU se necesita una tarjeta NVIDIA con su driver instalado (el runtime de CUDA viene
+dentro de los paquetes de PyTorch y numba-cuda). Se puede verificar con:
 
 ```bash
 nvidia-smi
 ```
+
+TensorFlow no tiene soporte de GPU en Windows nativo desde la versión 2.11, por eso la CNN 2 del Lab 3
+se reescribió en PyTorch (`src/model.py`, misma arquitectura capa por capa). Así CPU y GPU se comparan
+con el mismo framework.
+
+## Ejecución del Proyecto 3
+
+Instalación (en un entorno virtual, con ~12 GB libres):
+
+```bash
+python -m venv .venv
+```
+
+```bash
+.venv\Scripts\activate
+```
+
+```bash
+pip install -r requirements.txt
+```
+
+Comprobar que PyTorch y Numba ven la GPU:
+
+```bash
+python -c "import torch; from numba import cuda; print(torch.cuda.is_available(), cuda.is_available())"
+```
+
+Benchmark completo, desde la raíz del repo (descarga el dataset si hace falta):
+
+```bash
+python src/benchmark.py --reps 3 --epochs 3
+```
+
+Corre, en orden:
+
+1. **Preprocesamiento**: secuencial vs paralelo (CPU), 3 repeticiones, verificando que ambos den los
+   mismos arrays. Deja los `.npy` en `data/processed/`.
+2. **Entrenamiento**: CNN 2 con 3 épocas en CPU con 1 hilo, CPU con todos los hilos, GPU y GPU con
+   precisión mixta, 3 repeticiones cada una.
+3. **Modelo final**: 15 épocas en GPU con early stopping; guarda `models/cnn2_torch.pt`.
+4. **Kernels propios**: inferencia del test con `src/cuda_kernels.py` en CPU secuencial, CPU paralelo y
+   GPU, comparada con PyTorch.
+
+Se puede correr una sola fase (`--fases entrenamiento`) y saltar la configuración más lenta
+(`--sin-cpu-1hilo`). Los resultados quedan en `results/`, las gráficas en `images/p3_*.png`, y el
+notebook `notebooks/07_proyecto3_cuda.ipynb` los presenta con el análisis.
+
+Mientras corre, abrir el Administrador de Tareas (Rendimiento → CPU con "procesadores lógicos" y
+GPU con la gráfica "Cuda") y una terminal con `nvidia-smi -l 1` para tomar las capturas del informe.
+Guardarlas en `docs/report/capturas/`.
 
 ## Origen del código base
 

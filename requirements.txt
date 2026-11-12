@@ -1,8 +1,17 @@
-# dependencias del laboratorio 3 (ASL)
+# dependencias del proyecto 3 (ASL + CUDA)
 # instalar con: pip install -r requirements.txt
+#
+# requisitos de la maquina:
+# - GPU NVIDIA con driver reciente (verificar con `nvidia-smi`); no hace falta
+#   instalar el CUDA Toolkit aparte: los wheels de PyTorch y numba-cuda traen lo suyo
+# - Python 3.10 a 3.13
+# - ~12 GB libres en disco (PyTorch con CUDA ~5 GB, dataset ~2.5 GB, .npy ~1 GB)
 
-# datos y computo
-numpy>=2.2
+# wheels de PyTorch con CUDA 12.6 (incluyen runtime CUDA + cuDNN)
+--extra-index-url https://download.pytorch.org/whl/cu126
+
+# datos y computo (numba-cuda todavia no es compatible con numpy 2.4+)
+numpy>=2.2,<2.4
 pandas>=2.3
 pillow>=11.0
 scikit-learn>=1.8
@@ -13,9 +22,18 @@ matplotlib>=3.10
 # descarga del dataset
 kagglehub>=1.0
 
-# deep learning
-tensorflow>=2.18
+# fase de entrenamiento en GPU
+torch>=2.7
+
+# kernels CUDA propios en Python (el extra cu12 trae NVVM/NVRTC como wheels)
+numba-cuda[cu12]>=0.30
+
+# monitoreo de CPU durante el benchmark
+psutil>=7.0
 
 # notebooks
 jupyter>=1.1
 nbconvert>=7.16
+
+# solo para volver a correr los notebooks originales del Lab 3 (Keras, en CPU):
+# tensorflow>=2.18
